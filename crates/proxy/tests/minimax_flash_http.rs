@@ -72,7 +72,7 @@ fn preset(id: &str, host: &str) -> Provider {
         .clone();
     let mut p: Provider = serde_json::from_value(value).unwrap();
     p.base_url = p.base_url.replace("api.minimax.io", host);
-    p.api_key = "offline-fixture-key".into();
+    p.api_key = "fixture".into();
     p
 }
 
