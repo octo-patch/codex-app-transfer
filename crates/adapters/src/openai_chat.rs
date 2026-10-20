@@ -38,8 +38,24 @@ impl Adapter for OpenAiChatAdapter {
         &self,
         client_path: &str,
         body: Bytes,
-        _provider: &Provider,
+        provider: &Provider,
     ) -> Result<RequestPlan, AdapterError> {
+        let body = if crate::minimax::is_direct(provider)
+            && normalize_v1_prefix(client_path).split('?').next() == Some("/chat/completions")
+        {
+            let source: serde_json::Value = serde_json::from_slice(&body)
+                .map_err(|e| AdapterError::BadRequest(e.to_string()))?;
+            let mut target = source
+                .as_object()
+                .cloned()
+                .ok_or_else(|| AdapterError::BadRequest("chat body must be an object".into()))?;
+            crate::minimax::apply_controls(&mut target, &source, provider, false)?;
+            Bytes::from(
+                serde_json::to_vec(&target).map_err(|e| AdapterError::BadRequest(e.to_string()))?,
+            )
+        } else {
+            body
+        };
         Ok(RequestPlan {
             upstream_path: normalize_v1_prefix(client_path),
             body,

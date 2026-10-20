@@ -126,10 +126,7 @@ mod tests {
         assert_eq!(minimax_anthropic["isBuiltin"], true);
 
         let default_model = minimax_openai["models"]["default"].as_str().unwrap_or("");
-        assert!(
-            default_model.starts_with("MiniMax-M3"),
-            "the default model must be MiniMax-M3, got {default_model}"
-        );
+        assert_eq!(default_model, "MiniMax-M3.1-Flash");
         assert!(
             minimax_openai["modelCapabilities"][default_model]["context_window"].is_number(),
             "the default model must declare context_window"
@@ -174,14 +171,20 @@ mod tests {
                 preset["modelCapabilities"]["MiniMax-M3"]["input_modalities"],
                 serde_json::json!(["text", "image", "video"])
             );
+            assert_eq!(preset["models"]["default"], "MiniMax-M3.1-Flash");
             assert_eq!(
-                preset["modelCapabilities"]["MiniMax-M2.7"]["supports_vision"],
-                serde_json::Value::Bool(false)
+                preset["modelCapabilities"]["MiniMax-M3.1-Flash"]["max_output_tokens"],
+                524288
             );
             assert_eq!(
-                preset["modelCapabilities"]["MiniMax-M2.7"]["input_modalities"],
-                serde_json::json!(["text"])
+                preset["modelCapabilities"]["MiniMax-M3.1-Flash"]["context_window"],
+                1000000
             );
+            assert_eq!(
+                preset["modelCapabilities"]["MiniMax-M3.1-Flash"]["input_modalities"],
+                serde_json::json!(["text", "image", "video"])
+            );
+            assert_eq!(preset["modelCapabilities"].as_object().unwrap().len(), 2);
         }
     }
 

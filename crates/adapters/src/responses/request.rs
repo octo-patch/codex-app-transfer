@@ -326,6 +326,10 @@ pub fn responses_body_to_chat_body_for_provider_with_session(
     }
 
     sanitize_chat_body_for_provider(&mut result, provider);
+    // Apply after the legacy MiniMax sanitizer so Flash effort survives on the wire.
+    if let Some(provider) = provider {
+        crate::minimax::apply_controls(&mut result, input, provider, false)?;
+    }
 
     // [MOC-231] 在最终 chat body 定型(merge 历史 + dedupe 瘦身 + sanitize)后,对即将
     // 发往上游的 messages + tools 算 by-source 明细(供 Codex Desktop 上下文面板)。

@@ -351,9 +351,19 @@
       }
     ],
     "models": {
-      "default": "MiniMax-M3"
+      "default": "MiniMax-M3.1-Flash"
     },
     "modelCapabilities": {
+      "MiniMax-M3.1-Flash": {
+        "context_window": 1000000,
+        "max_output_tokens": 524288,
+        "supports_vision": true,
+        "input_modalities": [
+          "text",
+          "image",
+          "video"
+        ]
+      },
       "MiniMax-M3": {
         "context_window": 1000000,
         "supports_vision": true,
@@ -362,19 +372,12 @@
           "image",
           "video"
         ]
-      },
-      "MiniMax-M2.7": {
-        "context_window": 204800,
-        "supports_vision": false,
-        "input_modalities": [
-          "text"
-        ]
       }
     },
     "notices": [
       {
         "type": "info",
-        "text": "MiniMax M2.x / M3 走 OpenAI 兼容 chat completions 端点,代理自动剥不兼容字段(reasoning_effort / response_format / parallel_tool_calls 等)+ tool 剥 strict + 连续 system 合并;响应侧 reasoning_details 拆 reasoning + <think> 兜底拆分仅对 MiniMax 启用。M3 上下文 1M(官方 1,048,576,本项目按 1M 判定)。"
+        "text": "MiniMax-M3.1-Flash and MiniMax-M3 support a 1,000,000-token context and text, image, and video input. Flash always thinks; choose low, medium, high, xhigh, or max effort (default)."
       },
       {
         "type": "info",
@@ -382,7 +385,7 @@
       },
       {
         "type": "info",
-        "text": "MiniMax provides global (api.minimax.io) and China (api.minimaxi.com) OpenAI-compatible endpoints. MiniMax-M3 accepts text, image, and video input; MiniMax-M2.7 is text-only."
+        "text": "MiniMax provides global (api.minimax.io) and China (api.minimaxi.com) OpenAI-compatible endpoints. MiniMax-M3.1-Flash (default) and MiniMax-M3 accept text, image, and video input. Existing custom model mappings remain usable."
       }
     ],
     "requestOptions": {},
@@ -406,9 +409,19 @@
       }
     ],
     "models": {
-      "default": "MiniMax-M3"
+      "default": "MiniMax-M3.1-Flash"
     },
     "modelCapabilities": {
+      "MiniMax-M3.1-Flash": {
+        "context_window": 1000000,
+        "max_output_tokens": 524288,
+        "supports_vision": true,
+        "input_modalities": [
+          "text",
+          "image",
+          "video"
+        ]
+      },
       "MiniMax-M3": {
         "context_window": 1000000,
         "supports_vision": true,
@@ -417,19 +430,12 @@
           "image",
           "video"
         ]
-      },
-      "MiniMax-M2.7": {
-        "context_window": 204800,
-        "supports_vision": false,
-        "input_modalities": [
-          "text"
-        ]
       }
     },
     "notices": [
       {
         "type": "info",
-        "text": "Use the Anthropic-compatible Messages API through the global or China endpoint. MiniMax-M3 accepts text, image, and video input; MiniMax-M2.7 is text-only."
+        "text": "Use the Anthropic-compatible Messages API through the global or China endpoint. MiniMax-M3.1-Flash (default) and MiniMax-M3 accept text, image, and video input. Existing custom model mappings remain usable."
       }
     ],
     "requestOptions": {},

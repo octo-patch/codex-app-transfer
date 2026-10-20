@@ -69,6 +69,9 @@ pub enum ReasoningEffortWire {
     /// 让 DeepSeek max 档完全不可达,违反用户期望)。
     HighMax,
 
+    /// MiniMax-M3.1-Flash: adaptive thinking with five depth levels.
+    MiniMaxFlash,
+
     /// **OpenAI Responses 标准 enum** — `reasoning_effort: string` 接 minimal/low/medium/high.
     ///
     /// 映射:
@@ -107,6 +110,14 @@ impl ReasoningEffortWire {
                 "minimal" | "low" | "medium" | "high" => Some("high"),
                 _ => None,
             },
+            Self::MiniMaxFlash => match effort {
+                "low" => Some("low"),
+                "medium" => Some("medium"),
+                "high" => Some("high"),
+                "xhigh" => Some("xhigh"),
+                "max" => Some("max"),
+                _ => None,
+            },
             Self::OpenAIEnum => match effort {
                 "none" | "off" | "auto" | "disabled" => None,
                 "xhigh" | "max" | "highest" => Some("high"),
@@ -142,7 +153,7 @@ impl ReasoningEffortWire {
                     "provider does not accept reasoning_effort wire; relying on upstream default; user can override via provider.requestOptions"
                 );
             }
-            (Self::HighMax | Self::OpenAIEnum, None) => {
+            (Self::HighMax | Self::OpenAIEnum | Self::MiniMaxFlash, None) => {
                 let is_disable = matches!(effort, "none" | "off" | "disabled" | "auto");
                 if is_disable {
                     tracing::debug!(

@@ -20,6 +20,7 @@ pub mod gemini_cli;
 pub mod gemini_native;
 pub mod grok_web;
 pub(crate) mod mapper;
+mod minimax;
 pub mod openai_chat;
 pub mod passthrough;
 pub mod registry;

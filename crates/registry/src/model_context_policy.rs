@@ -33,7 +33,7 @@ pub fn documented_context_window(model_id: &str) -> Option<u64> {
         "qwen3.6-plus" | "qwen3.6-flash" => Some(ONE_M_CONTEXT_WINDOW),
         // MiniMax
         "minimax-m2.7" => Some(204_800),
-        "minimax-m3" => Some(ONE_M_CONTEXT_WINDOW),
+        "minimax-m3" | "minimax-m3.1-flash" => Some(ONE_M_CONTEXT_WINDOW),
         // Google Gemini:仅限**确有 ≥1M 上下文**的世代 —— Gemini 1.5 / 2.x / 3.x
         // (antigravity 全系落在 2.x / 3.x,且上游 `antigravity_models.json` 对它们都
         // 声明 context_length = 1_048_576)。真机 antigravity 实际映射的是带后缀的 id

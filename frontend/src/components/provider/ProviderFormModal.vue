@@ -123,6 +123,22 @@ const fetching = ref(false)
 const testing = ref(false)
 const showKey = ref(false)
 const availableModels = ref<ModelOpt[]>([])
+// Filter suggestions only: the combobox remains editable and saved mappings stay intact.
+// Gateway IDs are retained only when returned by that gateway; no route is invented.
+const ordinaryModels = computed(() => {
+  const current = /^(?:minimax\/)?minimax-m3(?:\.1-flash(?:-free|:free)?)?$/i
+  const textModel = /^(?:minimax\/)?(?:minimax-m\d|MiniMax-Text-01)/i
+  const direct = ['minimax', 'minimax-anthropic'].includes(selectedPresetId.value)
+    && /^https:\/\/api\.(minimax\.io|minimaxi\.com)\//.test(form.baseUrl)
+  const candidates = direct
+    ? [{ label: 'MiniMax-M3.1-Flash', value: 'MiniMax-M3.1-Flash' }, { label: 'MiniMax-M3', value: 'MiniMax-M3' }, ...availableModels.value]
+    : availableModels.value
+  const options = candidates.filter((m, i) => (!textModel.test(m.value) || current.test(m.value))
+    && (!textModel.test(m.label) || current.test(m.label) || current.test(m.value))
+    && candidates.findIndex((other) => other.value === m.value) === i)
+  const flash = options.filter((m) => /^(?:minimax\/)?minimax-m3\.1-flash(?:-free|:free)?$/i.test(m.value))
+  return [...flash, ...options.filter((m) => !flash.includes(m))]
+})
 // [CAT-256] 「获取模型」过滤掉走 messages(anthropic)端点的模型(如 OpenCode Go 的
 // minimax/qwen 系)后,持久显示已过滤状态(按 baseUrl 缓存,重开弹窗仍显示)。
 const messagesFiltered = ref(false)
@@ -394,7 +410,7 @@ async function fetchModels() {
     // [MOC-261 一-7] 自动填充:用后端 suggested(槽位→模型 id 自动建议,目前主要给 default 槽)
     // 预填**空**槽位,不覆盖用户已选;只接受确在可用列表里的 id。
     const suggested = res.suggested || {}
-    const valid = new Set(availableModels.value.map((o) => o.value))
+    const valid = new Set(ordinaryModels.value.map((o) => o.value))
     for (const slot of Object.keys(form.models)) {
       const sv = suggested[slot]
       if (sv && !form.models[slot] && valid.has(sv)) form.models[slot] = sv
@@ -637,7 +653,7 @@ async function save() {
       <SettingsRow v-for="s in MODEL_SLOTS" :key="s.key" :title="s.label">
         <AppCombobox
           v-model="form.models[s.key]"
-          :options="availableModels"
+          :options="ordinaryModels"
           :placeholder="s.key === 'default' ? 'gpt-4o' : t('providerForm.slotFallbackPlaceholder')"
         />
       </SettingsRow>

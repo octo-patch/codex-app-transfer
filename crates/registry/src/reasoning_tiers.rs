@@ -115,6 +115,30 @@ static BINARY_ENABLE_THINKING: ReasoningTierSpec = ReasoningTierSpec {
 /// **wire**:M2.x(chat)思考强制开、`disable_wire`/`on_tier_wire` 皆 `None`(不发 reasoning_effort,
 /// minimax sanitize 也会剥);Gemini 走 gemini_native,`max`→`thinkingLevel:high`(Gemini 3 最高;2.x 走
 /// thinkingBudget)由 `adapters::gemini_native::request` 映射,不经本表 chat wire。本 spec 只驱动 picker。
+// https://platform.minimax.io/docs/api-reference/text-openai-api
+// Flash always thinks; compact must not inject a disabled thinking field.
+static MINIMAX_FLASH_TIERS: ReasoningTierSpec = ReasoningTierSpec {
+    levels: &[
+        ReasoningTier {
+            effort: "low",
+            description: "Low thinking effort",
+        },
+        ReasoningTier {
+            effort: "medium",
+            description: "Medium thinking effort",
+        },
+        TIER_HIGH,
+        ReasoningTier {
+            effort: "xhigh",
+            description: "Extra high thinking effort",
+        },
+        TIER_MAX,
+    ],
+    default_level: Some("max"),
+    disable_wire: None,
+    on_tier_wire: Some(ReasoningEffortWire::MiniMaxFlash),
+};
+
 static SINGLE_MAX: ReasoningTierSpec = ReasoningTierSpec {
     levels: &[TIER_MAX],
     default_level: Some("max"),
@@ -182,6 +206,7 @@ pub fn reasoning_tiers_for_model(model: &str) -> Option<&'static ReasoningTierSp
     }
 
     match m.as_str() {
+        "minimax-m3.1-flash" => Some(&MINIMAX_FLASH_TIERS),
         // DeepSeek V4(api-docs.deepseek.com/guides/thinking_mode)
         "deepseek-v4-pro" | "deepseek-v4-flash" => Some(&DEEPSEEK_TIERS),
 
@@ -287,6 +312,7 @@ pub fn all_reasoning_tier_efforts() -> Vec<&'static str> {
         &BINARY_THINKING_TYPE,
         &BINARY_ENABLE_THINKING,
         &SINGLE_MAX,
+        &MINIMAX_FLASH_TIERS,
         &QODER_BINARY,
         &QODER_EFFORT,
         &QODER_NO_THINKING,
@@ -309,6 +335,15 @@ mod tests {
 
     fn efforts(spec: &ReasoningTierSpec) -> Vec<&'static str> {
         spec.levels.iter().map(|l| l.effort).collect()
+    }
+
+    #[test]
+    fn minimax_flash_has_five_efforts_and_cannot_disable_thinking() {
+        let spec = reasoning_tiers_for_model("MiniMax-M3.1-Flash").unwrap();
+        assert_eq!(efforts(spec), ["low", "medium", "high", "xhigh", "max"]);
+        assert_eq!(spec.default_level, Some("max"));
+        assert_eq!(spec.disable_wire, None);
+        assert_eq!(spec.on_tier_wire, Some(ReasoningEffortWire::MiniMaxFlash));
     }
 
     #[test]
@@ -523,7 +558,11 @@ mod tests {
         // 当前表:GLM/Kimi/Qwen/MiMo(none,max)+ DeepSeek(none,high,max)+ Gemini/MiniMax-M2.x(max)
         // → 去重 = {high, max, none}。
         let efforts = all_reasoning_tier_efforts();
-        assert_eq!(efforts, vec!["high", "max", "none"], "并集去重 + 排序");
+        assert_eq!(
+            efforts,
+            vec!["high", "low", "max", "medium", "none", "xhigh"],
+            "并集去重 + 排序"
+        );
         // 去重不变量:无重复
         let mut sorted = efforts.clone();
         sorted.dedup();

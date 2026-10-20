@@ -91,7 +91,10 @@ pub fn prepare_anthropic_messages_request(
         let compact_chat_body = compact::build_compact_chat_request(&body_eff, provider)?;
         let compact_chat_json: Value = serde_json::from_slice(&compact_chat_body)
             .map_err(|e| AdapterError::Internal(format!("compact chat body decode: {e}")))?;
-        let wire = chat_body_to_anthropic_messages_request(&compact_chat_json, false)?;
+        let mut wire = chat_body_to_anthropic_messages_request(&compact_chat_json, false)?;
+        if let Some(target) = wire.request.as_object_mut() {
+            crate::minimax::apply_controls(target, &compact_chat_json, provider, true)?;
+        }
         let body = serde_json::to_vec(&wire.request).map_err(AdapterError::BodyDecode)?;
         return Ok(AnthropicMessagesPreparedRequest {
             upstream_path: build_anthropic_messages_upstream_path(&provider.base_url),
@@ -155,7 +158,10 @@ pub fn responses_body_to_anthropic_messages_request_with_session(
         Some(provider),
         session_cache,
     )?;
-    let wire = chat_body_to_anthropic_messages_request(&conversion.body, true)?;
+    let mut wire = chat_body_to_anthropic_messages_request(&conversion.body, true)?;
+    if let Some(target) = wire.request.as_object_mut() {
+        crate::minimax::apply_controls(target, input, provider, true)?;
+    }
     Ok(AnthropicMessagesRequestConversion {
         request: wire.request,
         response_session: conversion.response_session,
