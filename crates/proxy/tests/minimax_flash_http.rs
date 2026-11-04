@@ -156,7 +156,7 @@ async fn minimax_flash_default_and_all_efforts_reach_http_with_image_and_tool_hi
                 assert_eq!(body["thinking"], json!({"type":"adaptive"}));
                 assert_eq!(
                     captured.headers["authorization"],
-                    "Bearer offline-fixture-key"
+                    "Bearer fixture"
                 );
                 assert!(body.get("previous_response_id").is_none());
                 assert!(body.get("service_tier").is_none());
