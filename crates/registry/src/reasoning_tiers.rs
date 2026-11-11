@@ -561,7 +561,7 @@ mod tests {
         assert_eq!(
             efforts,
             vec!["high", "low", "max", "medium", "none", "xhigh"],
-            "并集去重 + 排序"
+            "deduplicated and sorted union"
         );
         // 去重不变量:无重复
         let mut sorted = efforts.clone();
